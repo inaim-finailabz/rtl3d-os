@@ -23,6 +23,7 @@ On a phone running Nura edge, as root:
 
 ```sh
 wget -O /etc/apk/keys/rtl3d-os.rsa.pub https://inaim-finailabz.github.io/rtl3d-os/rtl3d-os.rsa.pub
+mkdir -p /etc/apk/repositories.d
 echo https://inaim-finailabz.github.io/rtl3d-os/edge > /etc/apk/repositories.d/rtl3d-os.list
 apk update && apk add rtl3d-os-base
 ```
