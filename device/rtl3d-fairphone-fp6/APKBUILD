@@ -1,0 +1,31 @@
+# Maintainer: AI Labz Ltd <hello@finailabz.com>
+# The Fairphone 6's platform layer in RTL@3D OS: fixes on top of Nura's
+# device-fairphone-fp6, each tested on an FP6+.
+pkgname=rtl3d-fairphone-fp6
+pkgver=0.1
+pkgrel=0
+pkgdesc="RTL@3D OS fixes for the Fairphone (Gen. 6)"
+url="https://github.com/inaim-finailabz/rtl3d-os"
+arch="noarch"
+license="GPL-3.0-or-later"
+depends="device-fairphone-fp6 rtl3d-os-base"
+options="!check"
+source="
+	modem-gnss.conf
+	fp6-no-tsched.pa
+	"
+
+package() {
+	# modem-gnss.service (soc-qcom-modem) otherwise retries every 30 s for
+	# ever: the FP6's modem answers NotSupported to the NMEA step, and the
+	# unit's start limit never trips.
+	install -Dm644 "$srcdir"/modem-gnss.conf \
+		"$pkgdir"/etc/systemd/system/modem-gnss.service.d/rtl3d-fp6.conf
+	# PulseAudio: interrupt-driven scheduling for the q6apm speakers.
+	install -Dm644 "$srcdir"/fp6-no-tsched.pa \
+		"$pkgdir"/etc/pulse/default.pa.d/fp6-no-tsched.pa
+}
+sha512sums="
+3d745d015261eb430ee5a46764834b01a217ddacb74d55c4db52fac1ce61a749b5d6fc20671329953c4fc9f899953c34bbc83cb235ef95622966c541c8be342c  modem-gnss.conf
+b729e9fdf991a7cc7d95b1648bfd2d9d33b4ed79f3f309781fe3454b4668d1666e9606ec2e2ebf41fef6ff07e105855af849b612126329b96b83e1c4ef875280  fp6-no-tsched.pa
+"

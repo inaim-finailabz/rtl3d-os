@@ -1,0 +1,11 @@
+# Fairphone (Gen. 6) speakers crackle under PulseAudio's timer-based
+# scheduling: the q6apm PCM reports its position too coarsely for it. Load the
+# sound cards again with interrupt-driven scheduling instead. Installed as
+# /etc/pulse/default.pa.d/fp6-no-tsched.pa, after default.pa has loaded
+# module-udev-detect with its defaults. Its cards outlive it, so unload them
+# too and let the new one find them again.
+.ifexists module-udev-detect.so
+unload-module module-udev-detect
+unload-module module-alsa-card
+load-module module-udev-detect tsched=0
+.endif
