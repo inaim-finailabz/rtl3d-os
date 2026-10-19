@@ -39,4 +39,10 @@ else
     apk index -q -o APKINDEX.tar.gz ./*.apk
 fi
 abuild-sign -q -k /root/.abuild/rtl3d-os.rsa APKINDEX.tar.gz
+# apk 3 fetches a noarch package from <repo>/noarch/, whatever the index's
+# arch: the noarch ones are published there too.
+mkdir -p "$OUT/noarch"
+for f in ./*.apk; do
+    tar -xzOf "$f" .PKGINFO 2>/dev/null | grep -qx 'arch = noarch' && cp "$f" "$OUT/noarch/"
+done
 ls -l "$OUT/$arch"
