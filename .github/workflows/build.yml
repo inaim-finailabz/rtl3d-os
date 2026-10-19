@@ -28,6 +28,7 @@ jobs:
         run: |
           docker run --rm -e RTL3D_OS_KEY -v "$PWD:/src" -w /src alpine:edge \
             sh tools/build.sh site/edge
+          sudo chown -R "$(id -u):$(id -g)" site   # made as root in the container
           cp README.md keys/rtl3d-os.rsa.pub site/
       - uses: actions/upload-pages-artifact@v3
         with:
