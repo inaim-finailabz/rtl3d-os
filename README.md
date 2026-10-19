@@ -13,6 +13,7 @@ Not affiliated with or endorsed by Nura or postmarketOS.
 |---|---|
 | `rtl3d-os-base` | adds this repository and its signing key |
 | `rtl3d-fairphone-fp6` | Fairphone (Gen. 6): the GNSS set-up service stops retrying for ever; PulseAudio scheduling for its speakers |
+| `plasma-mobile` | Plasma Mobile with RTL@3D's lock screen: an Emergency call button (999, 112) under the PIN keypad, with RTL@3D Lite installed |
 
 More are coming: the Fairphone 6 kernel with speaker and camera support, and
 RTL@3D as packages.

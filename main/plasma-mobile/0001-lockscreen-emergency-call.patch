@@ -1,0 +1,181 @@
+RTL@3D: emergency calls from the lock screen, without the PIN.
+
+An "Emergency call" button under the keypad opens EmergencyCall.qml:
+Call 999 / Call 112, speaker, hang up, through RTL@3D's org.rtl3d.apps
+(rtl3d-admin emergency, which accepts only 999, 112 and 911). The button is
+shown only when that module is installed.
+
+diff -ruN a/shell/contents/lockscreen/EmergencyCall.qml b/shell/contents/lockscreen/EmergencyCall.qml
+--- a/shell/contents/lockscreen/EmergencyCall.qml	1970-01-01 01:00:00
++++ b/shell/contents/lockscreen/EmergencyCall.qml	2026-10-20 00:58:59
+@@ -0,0 +1,123 @@
++// SPDX-FileCopyrightText: 2026 AI Labz Ltd
++// SPDX-License-Identifier: GPL-2.0-or-later
++
++// RTL@3D: emergency calls from the lock screen, without the PIN, as on every
++// phone. Only 999, 112 and 911 can be called (rtl3d-admin checks it again);
++// nothing else about the phone is reachable from here.
++
++import QtQuick
++import QtQuick.Controls
++import QtQuick.Layouts
++
++import org.kde.kirigami as Kirigami
++import org.rtl3d.apps as RTL3D
++
++Rectangle {
++    id: root
++    color: Qt.rgba(0.05, 0.02, 0.02, 0.96)
++
++    signal closed()
++
++    property string state_: "idle"      // idle, dialing, ringing-out, active, terminated
++    property string number: ""
++    property string trouble: ""
++    property bool speaker: false
++    readonly property bool inCall: state_ !== "idle" && state_ !== "terminated"
++
++    RTL3D.Admin { id: admin }
++
++    Timer {
++        interval: 1500
++        repeat: true
++        running: root.number !== ""
++        onTriggered: admin.emergencyStatus(state => { root.state_ = state || "idle"; })
++    }
++
++    function dial(n) {
++        trouble = "";
++        number = n;
++        state_ = "dialing";
++        admin.emergency("call", n, err => {
++            if (err) { trouble = err; number = ""; state_ = "idle"; }
++        });
++    }
++
++    function hangUp() {
++        admin.emergency("hangup", "", () => { number = ""; state_ = "idle"; speaker = false; });
++    }
++
++    // Swallow every touch: nothing under the emergency screen is reachable.
++    MouseArea { anchors.fill: parent }
++
++    ColumnLayout {
++        anchors.centerIn: parent
++        width: Math.min(parent.width - Kirigami.Units.gridUnit * 2, Kirigami.Units.gridUnit * 18)
++        spacing: Kirigami.Units.gridUnit * 1.5
++
++        Label {
++            Layout.alignment: Qt.AlignHCenter
++            text: root.inCall ? (root.state_ === "active" ? "In call: " : "Calling ") + root.number : "Emergency call"
++            color: "white"
++            font.pointSize: 20
++            font.bold: true
++        }
++
++        Label {
++            Layout.fillWidth: true
++            visible: root.trouble !== ""
++            text: root.trouble
++            color: "#ffb3b3"
++            wrapMode: Text.Wrap
++            horizontalAlignment: Text.AlignHCenter
++        }
++
++        Repeater {
++            model: ["999", "112"]
++            delegate: Button {
++                required property string modelData
++                visible: !root.inCall
++                Layout.fillWidth: true
++                Layout.preferredHeight: Kirigami.Units.gridUnit * 4
++                text: "Call " + modelData
++                font.pointSize: 22
++                font.bold: true
++                palette.button: "#d32f2f"
++                palette.buttonText: "white"
++                onClicked: root.dial(modelData)
++            }
++        }
++
++        RowLayout {
++            visible: root.inCall
++            Layout.fillWidth: true
++            spacing: Kirigami.Units.gridUnit
++
++            Button {
++                Layout.fillWidth: true
++                Layout.preferredHeight: Kirigami.Units.gridUnit * 3.5
++                text: root.speaker ? "Speaker off" : "Speaker on"
++                onClicked: {
++                    root.speaker = !root.speaker;
++                    admin.emergency("speaker", root.speaker ? "on" : "off", () => {});
++                }
++            }
++            Button {
++                Layout.fillWidth: true
++                Layout.preferredHeight: Kirigami.Units.gridUnit * 3.5
++                text: "Hang up"
++                palette.button: "#d32f2f"
++                palette.buttonText: "white"
++                onClicked: root.hangUp()
++            }
++        }
++
++        Button {
++            visible: !root.inCall
++            Layout.alignment: Qt.AlignHCenter
++            flat: true
++            text: "Cancel"
++            palette.buttonText: "white"
++            onClicked: root.closed()
++        }
++    }
++}
+diff -ruN a/shell/contents/lockscreen/Keypad.qml b/shell/contents/lockscreen/Keypad.qml
+--- a/shell/contents/lockscreen/Keypad.qml	2026-10-20 00:58:59
++++ b/shell/contents/lockscreen/Keypad.qml	2026-10-20 00:58:59
+@@ -237,4 +237,43 @@
+             }
+         }
+     }
++
++    // RTL@3D: emergency calls without the PIN. The button shows only where
++    // RTL@3D's module is installed; without it the lock screen is unchanged.
++    property bool emergencyAvailable: false
++    Component.onCompleted: {
++        try {
++            const probe = Qt.createQmlObject("import org.rtl3d.apps; Admin {}", root, "emergencyProbe");
++            probe.destroy();
++            root.emergencyAvailable = true;
++        } catch (e) {
++            root.emergencyAvailable = false;
++        }
++    }
++
++    Button {
++        id: emergencyButton
++        visible: root.emergencyAvailable && root.openProgress >= 0.8 && !lockScreenState.isKeyboardMode
++        anchors.horizontalCenter: parent.horizontalCenter
++        anchors.bottom: parent.bottom
++        anchors.bottomMargin: Kirigami.Units.gridUnit
++        flat: true
++        text: "Emergency call"
++        font.bold: true
++        palette.buttonText: "#ff6b6b"
++        onClicked: emergencyLoader.active = true
++    }
++
++    Loader {
++        id: emergencyLoader
++        anchors.fill: parent
++        z: 100
++        active: false
++        source: "EmergencyCall.qml"
++        Connections {
++            target: emergencyLoader.item
++            ignoreUnknownSignals: true
++            function onClosed() { emergencyLoader.active = false; }
++        }
++    }
+ }

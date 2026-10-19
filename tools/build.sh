@@ -24,9 +24,11 @@ work="$(mktemp -d)"
 for apkbuild in */*/APKBUILD; do
     dir="$(dirname "$apkbuild")"
     echo "== $dir"
-    # -F: as root (a throwaway container); -d: our noarch packages need
-    # nothing at build time, and Nura's packages are not in this container.
-    (cd "$SRC/$dir" && REPODEST="$work" SRCDEST="$work/src" abuild -F -d -r)
+    # -F: as root (a throwaway container). A package with makedepends (e.g.
+    # plasma-mobile) gets them installed from Alpine; one without (our file
+    # packages, whose depends are Nura's and not in this container) uses -d.
+    if grep -q '^makedepends=' "$SRC/$apkbuild"; then deps=""; else deps="-d"; fi
+    (cd "$SRC/$dir" && REPODEST="$work" SRCDEST="$work/src" abuild -F $deps -r)
 done
 
 arch="$(apk --print-arch)"
