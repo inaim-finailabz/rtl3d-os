@@ -129,8 +129,8 @@ diff -urN a/src/contents/ui/main.qml b/src/contents/ui/main.qml
      PlasmaCamera {
 diff -urN a/src/main.cpp b/src/main.cpp
 --- a/src/main.cpp	2026-10-20 11:33:41
-+++ b/src/main.cpp	2026-10-20 11:34:13
-@@ -24,6 +24,55 @@
++++ b/src/main.cpp	2026-10-20 11:37:14
+@@ -24,6 +24,57 @@
  
  #include "version.h"
  
@@ -146,6 +146,8 @@ diff -urN a/src/main.cpp b/src/main.cpp
 +#include <QWaylandClientExtensionTemplate>
 +#include <qpa/qplatformnativeinterface.h>
 +#include "qwayland-kde-lockscreen-overlay-v1.h"
++
++using namespace Qt::Literals::StringLiterals;
 +
 +class AboveLockScreen : public QWaylandClientExtensionTemplate<AboveLockScreen>, public QtWayland::kde_lockscreen_overlay_v1
 +{
