@@ -1,0 +1,116 @@
+diff --git a/unl0kr/main.c b/unl0kr/main.c
+index 44f2235..0185786 100644
+--- a/unl0kr/main.c
++++ b/unl0kr/main.c
+@@ -555,7 +555,9 @@ int main(int argc, char *argv[]) {
+     lv_textarea_set_password_mode(textarea, conf_opts.textarea.obscured);
+     is_password_obscured = conf_opts.textarea.obscured;
+     lv_textarea_set_password_bullet(textarea, conf_opts.textarea.bullet);
+-    lv_textarea_set_placeholder_text(textarea, "Enter password...");
++    /* RTL@3D: the PIN pad asks for the PIN, the phone's one secret */
++    lv_textarea_set_placeholder_text(textarea,
++        conf_opts.keyboard.layout_id == SQ2LV_LAYOUT_PIN ? "Enter your PIN" : "Enter password...");
+     lv_obj_add_event_cb(textarea, textarea_ready_cb, LV_EVENT_READY, NULL);
+     lv_obj_set_flex_grow(textarea, 1);
+     lv_obj_add_state(textarea, LV_STATE_FOCUSED);
+diff --git a/unl0kr/sq2lv_layouts.c b/unl0kr/sq2lv_layouts.c
+index b8a5375..45c8d88 100644
+--- a/unl0kr/sq2lv_layouts.c
++++ b/unl0kr/sq2lv_layouts.c
+@@ -899,11 +899,51 @@ static const sq2lv_layer_t layers_fr[] = {
+     }
+ };
+ 
++/**
++ * Layout: PIN - RTL@3D, written by hand: the phone's PIN pad
++ **/
++
++static const char * const name_pin = "PIN";
++static const char * const short_name_pin = "pin";
++
++/* Layer: Digits */
++
++static const uint32_t num_keys_digits_pin = 12;
++
++static const char * const keycaps_digits_pin[] = { \
++    "1", "2", "3", "\n", \
++    "4", "5", "6", "\n", \
++    "7", "8", "9", "\n", \
++    LV_SYMBOL_BACKSPACE, "0", LV_SYMBOL_OK, "" \
++};
++
++static const lv_buttonmatrix_ctrl_t attributes_digits_pin[] = { \
++    LV_BUTTONMATRIX_CTRL_NO_REPEAT | 1, LV_BUTTONMATRIX_CTRL_NO_REPEAT | 1, LV_BUTTONMATRIX_CTRL_NO_REPEAT | 1, \
++    LV_BUTTONMATRIX_CTRL_NO_REPEAT | 1, LV_BUTTONMATRIX_CTRL_NO_REPEAT | 1, LV_BUTTONMATRIX_CTRL_NO_REPEAT | 1, \
++    LV_BUTTONMATRIX_CTRL_NO_REPEAT | 1, LV_BUTTONMATRIX_CTRL_NO_REPEAT | 1, LV_BUTTONMATRIX_CTRL_NO_REPEAT | 1, \
++    SQ2LV_CTRL_NON_CHAR | 1, LV_BUTTONMATRIX_CTRL_NO_REPEAT | 1, SQ2LV_CTRL_NON_CHAR | LV_BUTTONMATRIX_CTRL_NO_REPEAT | 1 \
++};
++
++static const int num_layers_pin = 1;
++
++static const sq2lv_layer_t layers_pin[] = {
++    {
++        .num_keys = num_keys_digits_pin,
++        .keycaps = keycaps_digits_pin,
++        .attributes = attributes_digits_pin,
++        .num_modifiers = 0,
++        .modifier_idxs = NULL,
++        .num_switchers = 0,
++        .switcher_idxs = NULL,
++        .switcher_dests = NULL
++    }
++};
++
+ /**
+  * Public interface
+  **/
+ 
+-const int sq2lv_num_layouts = 4;
++const int sq2lv_num_layouts = 5;
+ 
+ const sq2lv_layout_t sq2lv_layouts[] = {
+     /* US English */
+@@ -933,6 +973,13 @@ const sq2lv_layout_t sq2lv_layouts[] = {
+         .short_name = short_name_fr,
+         .num_layers = num_layers_fr,
+         .layers = layers_fr
++    },
++    /* PIN (RTL@3D) */
++    {
++        .name = name_pin,
++        .short_name = short_name_pin,
++        .num_layers = num_layers_pin,
++        .layers = layers_pin
+     }
+ };
+ 
+@@ -940,10 +987,12 @@ const char * const sq2lv_layout_names =
+     "US English" "\n"
+     "Deutsch" "\n"
+     "Español" "\n"
+-    "Français";
++    "Français" "\n"
++    "PIN";
+ 
+ const char * const sq2lv_layout_short_names =
+     "us" "\n"
+     "de" "\n"
+     "es" "\n"
+-    "fr";
++    "fr" "\n"
++    "pin";
+diff --git a/unl0kr/sq2lv_layouts.h b/unl0kr/sq2lv_layouts.h
+index e9d053b..f6122be 100644
+--- a/unl0kr/sq2lv_layouts.h
++++ b/unl0kr/sq2lv_layouts.h
+@@ -15,7 +15,9 @@ typedef enum {
+     SQ2LV_LAYOUT_US = 0,
+     SQ2LV_LAYOUT_DE = 1,
+     SQ2LV_LAYOUT_ES = 2,
+-    SQ2LV_LAYOUT_FR = 3
++    SQ2LV_LAYOUT_FR = 3,
++    /* RTL@3D: a phone PIN pad (added by hand, not generated) */
++    SQ2LV_LAYOUT_PIN = 4
+ } sq2lv_layout_id_t;
+ 
+ /* Layer type */

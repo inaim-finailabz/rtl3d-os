@@ -8,7 +8,8 @@
 #
 # One repository per Nura base: edge (Alpine edge) and v26.06 (Alpine 3.24).
 # A package that differs by base has its version in branches/BASE/NAME/,
-# used instead of main/NAME or device/NAME for that base.
+# used instead of main/NAME or device/NAME for that base; a branches/BASE/NAME/
+# SKIP file (its text says why) leaves the package out of that base.
 #
 # RTL3D_OS_KEY is the private signing key (PEM); its public half is
 # keys/rtl3d-os.rsa.pub, which phones get from rtl3d-os-base.
@@ -29,6 +30,7 @@ echo 'PACKAGER_PRIVKEY=/root/.abuild/rtl3d-os.rsa' > /root/.abuild/abuild.conf
 work="$(mktemp -d)"
 for apkbuild in main/*/APKBUILD device/*/APKBUILD; do
     dir="$(dirname "$apkbuild")"
+    [ -f "branches/$BASE/$(basename "$dir")/SKIP" ] && { echo "== $dir: skipped on $BASE"; continue; }
     [ -f "branches/$BASE/$(basename "$dir")/APKBUILD" ] && dir="branches/$BASE/$(basename "$dir")" && apkbuild="$dir/APKBUILD"
     echo "== $dir"
     # -F: as root (a throwaway container). A package with makedepends (e.g.
