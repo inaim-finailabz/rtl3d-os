@@ -3,7 +3,7 @@
 maintainer="AI Labz Ltd <hello@finailabz.com>"
 pkgname=plasma-mobile
 pkgver=6.6.6
-pkgrel=102
+pkgrel=103
 pkgdesc="Modules providing phone functionality for Plasma"
 # armhf blocked by qt6-qtdeclarative
 arch="all !armhf"
@@ -80,6 +80,7 @@ source="https://download.kde.org/$_rel/plasma/$pkgver/plasma-mobile-$pkgver.tar.
 	99-flashlight.rules
 	0001-lockscreen-emergency-call.patch
 	0002-lockscreen-camera.patch
+	0003-keypad-on-press.patch
 	"
 
 build() {
@@ -120,4 +121,5 @@ sha512sums="
 4badc25cbb7dc84d6af54cff5f3c09dcc37da86b7e930bdcab6d75f8dd90ef0dd9c8a3837ab696b1f4de9cad82d5e64ddd44904640a92e910a8f45524542be95  99-flashlight.rules
 50a923f749e35f75973cdf740fc3c079827d925af8bdb7fd21670ba10466b41415e50de41b3d856fe689f126662c91434c8263461b5dd7b8814216a7f3c51777  0001-lockscreen-emergency-call.patch
 efdc7f6b4a3227d25ec8c3dd07c4f5b70401f84534c13ba8a32fd4b8d6ce3f57f8617e90945ae12cd093e09635161099c0a83aa145d96511433ccaf7321a308b  0002-lockscreen-camera.patch
+bd681d9f86ef47ec15e1c32aa45f471bc828fcb98d04bae808139d6bf3139c826b8ea87247bfaa2dfa767b2e72f2c4a65146c8b8fc61d40b463407f29575f3b6  0003-keypad-on-press.patch
 "

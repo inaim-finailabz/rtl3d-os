@@ -1,0 +1,33 @@
+diff -urN a/shell/contents/lockscreen/Keypad.qml b/shell/contents/lockscreen/Keypad.qml
+--- a/shell/contents/lockscreen/Keypad.qml	2026-10-20 17:36:38
++++ b/shell/contents/lockscreen/Keypad.qml	2026-10-20 17:36:48
+@@ -192,19 +192,24 @@
+                                     button.pressed ? 0.5 : restingOpacity)
+                 }
+ 
++                // RTL@3D: a digit counts the moment the finger touches it, as on
++                // an iPhone. Counting on release lost fast taps: a finger that
++                // slides a little while tapping hands the touch to the lock
++                // screen's swipe, and the release never reaches the key.
+                 onPressedChanged: {
+                     if (pressed) {
+                         haptics.buttonVibrate();
++                        if (modelData === "R") {
++                            passwordBar.backspace();
++                        } else if (modelData !== "E") {
++                            passwordBar.keyPress(modelData);
++                        }
+                     }
+                 }
+ 
+                 onClicked: {
+-                    if (modelData === "R") {
+-                        passwordBar.backspace();
+-                    } else if (modelData === "E") {
++                    if (modelData === "E") {
+                         passwordBar.enter();
+-                    } else {
+-                        passwordBar.keyPress(modelData);
+                     }
+                 }
+ 
