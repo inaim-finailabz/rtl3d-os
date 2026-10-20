@@ -66,25 +66,25 @@ diff -urN a/src/CMakeLists.txt b/src/CMakeLists.txt
  pkg_check_modules(LIBCAMERA REQUIRED IMPORTED_TARGET libcamera)
 diff -urN a/src/contents/ui/camera/CameraControls.qml b/src/contents/ui/camera/CameraControls.qml
 --- a/src/contents/ui/camera/CameraControls.qml	2026-10-20 11:33:41
-+++ b/src/contents/ui/camera/CameraControls.qml	2026-10-20 11:34:13
++++ b/src/contents/ui/camera/CameraControls.qml	2026-10-20 15:31:13
 @@ -140,6 +140,7 @@
  
                  QQC2.ToolButton {
                      id: settingsButton
-+                    visible: !rtl3dLockscreen
++                    visible: !applicationWindow().rtl3dLockscreen
  
                      icon.name: "settings-configure"
                      icon.color: "white"
 diff -urN a/src/contents/ui/camera/PreviewArea.qml b/src/contents/ui/camera/PreviewArea.qml
 --- a/src/contents/ui/camera/PreviewArea.qml	2026-10-20 11:33:41
-+++ b/src/contents/ui/camera/PreviewArea.qml	2026-10-20 11:34:13
++++ b/src/contents/ui/camera/PreviewArea.qml	2026-10-20 15:31:13
 @@ -49,6 +49,13 @@
      MouseArea {
          anchors.fill: parent
          onClicked: {
 +            // RTL@3D: above the lock screen no other app may open; show the
 +            // photo just taken inside the camera instead.
-+            if (rtl3dLockscreen) {
++            if (applicationWindow().rtl3dLockscreen) {
 +                if (!showVideoPreview && preview.imageUrl)
 +                    applicationWindow().showLockscreenPhoto(preview.imageUrl);
 +                return;
@@ -94,10 +94,14 @@ diff -urN a/src/contents/ui/camera/PreviewArea.qml b/src/contents/ui/camera/Prev
              else
 diff -urN a/src/contents/ui/main.qml b/src/contents/ui/main.qml
 --- a/src/contents/ui/main.qml	2026-10-20 11:33:41
-+++ b/src/contents/ui/main.qml	2026-10-20 11:34:13
-@@ -27,7 +27,30 @@
++++ b/src/contents/ui/main.qml	2026-10-20 15:31:13
+@@ -26,8 +26,34 @@
+         camera: mainCamera
      }
  
++    // RTL@3D: true when started over the lock screen (set by main.cpp).
++    property bool rtl3dLockscreen: false
++
      function openSettings() {
 -        settingsDialog.open();
 +        if (!rtl3dLockscreen)
@@ -129,7 +133,7 @@ diff -urN a/src/contents/ui/main.qml b/src/contents/ui/main.qml
      PlasmaCamera {
 diff -urN a/src/main.cpp b/src/main.cpp
 --- a/src/main.cpp	2026-10-20 11:33:41
-+++ b/src/main.cpp	2026-10-20 11:37:14
++++ b/src/main.cpp	2026-10-20 15:31:13
 @@ -24,6 +24,57 @@
  
  #include "version.h"
