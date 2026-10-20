@@ -20,7 +20,9 @@ RTL@3D as packages.
 
 ## Using it
 
-On a phone running Nura edge, as root:
+One repository per Nura base: `edge`, or `v26.06` for the stable release
+(check `VERSION_ID` in /etc/os-release). On the phone, as root (`edge` shown;
+use `v26.06` on stable):
 
 ```sh
 wget -O /etc/apk/keys/rtl3d-os.rsa.pub https://inaim-finailabz.github.io/rtl3d-os/rtl3d-os.rsa.pub

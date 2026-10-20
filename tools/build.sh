@@ -3,12 +3,18 @@
 # edge (aarch64) container:
 #
 #   docker run --rm -e RTL3D_OS_KEY -v "$PWD:/src" -w /src alpine:edge \
-#       sh tools/build.sh out/edge
+#       sh tools/build.sh out/edge edge
+#   docker run ... alpine:3.24 sh tools/build.sh out/v26.06 v26.06
+#
+# One repository per Nura base: edge (Alpine edge) and v26.06 (Alpine 3.24).
+# A package that differs by base has its version in branches/BASE/NAME/,
+# used instead of main/NAME or device/NAME for that base.
 #
 # RTL3D_OS_KEY is the private signing key (PEM); its public half is
 # keys/rtl3d-os.rsa.pub, which phones get from rtl3d-os-base.
 set -eu
 OUT="$(mkdir -p "${1:?the folder for the repository}" && cd "$1" && pwd)"
+BASE="${2:-edge}"
 SRC="$(pwd)"
 
 apk add -q abuild alpine-sdk
@@ -21,8 +27,9 @@ cp keys/rtl3d-os.rsa.pub /etc/apk/keys/
 echo 'PACKAGER_PRIVKEY=/root/.abuild/rtl3d-os.rsa' > /root/.abuild/abuild.conf
 
 work="$(mktemp -d)"
-for apkbuild in */*/APKBUILD; do
+for apkbuild in main/*/APKBUILD device/*/APKBUILD; do
     dir="$(dirname "$apkbuild")"
+    [ -f "branches/$BASE/$(basename "$dir")/APKBUILD" ] && dir="branches/$BASE/$(basename "$dir")" && apkbuild="$dir/APKBUILD"
     echo "== $dir"
     # -F: as root (a throwaway container). A package with makedepends (e.g.
     # plasma-mobile) gets them installed from Alpine; one without (our file

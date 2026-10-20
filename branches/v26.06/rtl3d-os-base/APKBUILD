@@ -1,0 +1,26 @@
+# Maintainer: AI Labz Ltd <hello@finailabz.com>
+# RTL@3D OS: our package repository and key, on top of Nura's.
+pkgname=rtl3d-os-base
+pkgver=0.1
+pkgrel=0
+pkgdesc="RTL@3D OS, based on Nura: its package repository and signing key"
+url="https://github.com/inaim-finailabz/rtl3d-os"
+arch="noarch"
+license="GPL-3.0-or-later"
+options="!check"
+source="
+	rtl3d-os.list
+	rtl3d-os.rsa.pub
+	"
+
+package() {
+	# apk 3 reads /etc/apk/repositories.d/*.list beside Nura's own list.
+	install -Dm644 "$srcdir"/rtl3d-os.list "$pkgdir"/etc/apk/repositories.d/rtl3d-os.list
+	install -Dm644 "$srcdir"/rtl3d-os.rsa.pub "$pkgdir"/etc/apk/keys/rtl3d-os.rsa.pub
+	mkdir -p "$pkgdir"/etc/rtl3d-os
+	echo v26.06 > "$pkgdir"/etc/rtl3d-os/channel
+}
+sha512sums="
+e992ca34dee9a1302fb941c24be32ab60286c6a22c8c9b167c8643b3ccbc820bb35b236ad544e2f227d0b9147528dcbbd8bdc9bf77864ccdc9713b10e9d2a2ab  rtl3d-os.list
+91c00012a2a79d232464b7859836f1a1caa82231ff5e6fa3c8bb74a5e6a67d38e1702c194729fa1776dfb0fabeef96ff99c9018f49e2cb0216528f3fd474f07d  rtl3d-os.rsa.pub
+"
