@@ -1,14 +1,15 @@
 RTL@3D: emergency calls from the lock screen, without the PIN.
 
-An "Emergency call" button under the keypad opens EmergencyCall.qml:
-Call 999 / Call 112, speaker, hang up, through RTL@3D's org.rtl3d.apps
-(rtl3d-admin emergency, which accepts only 999, 112 and 911). The button is
-shown only when that module is installed.
+A red "Emergency call" button under the keypad (above the keyboard in
+password mode) opens EmergencyCall.qml: Call 999 / Call 112, speaker, hang
+up, through RTL@3D's org.rtl3d.apps (rtl3d-admin emergency, which accepts
+only 999, 112 and 911). Shown only when that module is installed. The
+buttons are drawn here: the lock screen's button style ignores colours.
 
 diff -ruN a/shell/contents/lockscreen/EmergencyCall.qml b/shell/contents/lockscreen/EmergencyCall.qml
 --- a/shell/contents/lockscreen/EmergencyCall.qml	1970-01-01 01:00:00
-+++ b/shell/contents/lockscreen/EmergencyCall.qml	2026-10-20 00:58:59
-@@ -0,0 +1,123 @@
++++ b/shell/contents/lockscreen/EmergencyCall.qml	2026-10-20 08:59:53
+@@ -0,0 +1,135 @@
 +// SPDX-FileCopyrightText: 2026 AI Labz Ltd
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +
@@ -36,6 +37,27 @@ diff -ruN a/shell/contents/lockscreen/EmergencyCall.qml b/shell/contents/lockscr
 +    readonly property bool inCall: state_ !== "idle" && state_ !== "terminated"
 +
 +    RTL3D.Admin { id: admin }
++
++    // Buttons drawn here: the lock screen's button style ignores colours.
++    component Pill: Rectangle {
++        id: pill
++        property string text: ""
++        property color tint: "#d32f2f"
++        property real textSize: 18
++        signal clicked()
++        Layout.fillWidth: true
++        implicitHeight: Kirigami.Units.gridUnit * 3.5
++        radius: height / 2
++        color: pillTap.pressed ? Qt.darker(tint, 1.25) : tint
++        Label {
++            anchors.centerIn: parent
++            text: pill.text
++            color: "white"
++            font.bold: true
++            font.pointSize: pill.textSize
++        }
++        TapHandler { id: pillTap; onTapped: pill.clicked() }
++    }
 +
 +    Timer {
 +        interval: 1500
@@ -84,16 +106,12 @@ diff -ruN a/shell/contents/lockscreen/EmergencyCall.qml b/shell/contents/lockscr
 +
 +        Repeater {
 +            model: ["999", "112"]
-+            delegate: Button {
++            delegate: Pill {
 +                required property string modelData
 +                visible: !root.inCall
-+                Layout.fillWidth: true
-+                Layout.preferredHeight: Kirigami.Units.gridUnit * 4
++                implicitHeight: Kirigami.Units.gridUnit * 4
 +                text: "Call " + modelData
-+                font.pointSize: 22
-+                font.bold: true
-+                palette.button: "#d32f2f"
-+                palette.buttonText: "white"
++                textSize: 22
 +                onClicked: root.dial(modelData)
 +            }
 +        }
@@ -103,39 +121,34 @@ diff -ruN a/shell/contents/lockscreen/EmergencyCall.qml b/shell/contents/lockscr
 +            Layout.fillWidth: true
 +            spacing: Kirigami.Units.gridUnit
 +
-+            Button {
-+                Layout.fillWidth: true
-+                Layout.preferredHeight: Kirigami.Units.gridUnit * 3.5
++            Pill {
 +                text: root.speaker ? "Speaker off" : "Speaker on"
++                tint: "#455a64"
 +                onClicked: {
 +                    root.speaker = !root.speaker;
 +                    admin.emergency("speaker", root.speaker ? "on" : "off", () => {});
 +                }
 +            }
-+            Button {
-+                Layout.fillWidth: true
-+                Layout.preferredHeight: Kirigami.Units.gridUnit * 3.5
++            Pill {
 +                text: "Hang up"
-+                palette.button: "#d32f2f"
-+                palette.buttonText: "white"
 +                onClicked: root.hangUp()
 +            }
 +        }
 +
-+        Button {
++        Pill {
 +            visible: !root.inCall
-+            Layout.alignment: Qt.AlignHCenter
-+            flat: true
 +            text: "Cancel"
-+            palette.buttonText: "white"
++            tint: "#455a64"
++            textSize: 14
++            implicitHeight: Kirigami.Units.gridUnit * 2.6
 +            onClicked: root.closed()
 +        }
 +    }
 +}
 diff -ruN a/shell/contents/lockscreen/Keypad.qml b/shell/contents/lockscreen/Keypad.qml
---- a/shell/contents/lockscreen/Keypad.qml	2026-10-20 00:58:59
-+++ b/shell/contents/lockscreen/Keypad.qml	2026-10-20 00:58:59
-@@ -237,4 +237,43 @@
+--- a/shell/contents/lockscreen/Keypad.qml	2026-10-20 08:59:53
++++ b/shell/contents/lockscreen/Keypad.qml	2026-10-20 08:59:53
+@@ -237,4 +237,57 @@
              }
          }
      }
@@ -153,17 +166,31 @@ diff -ruN a/shell/contents/lockscreen/Keypad.qml b/shell/contents/lockscreen/Key
 +        }
 +    }
 +
-+    Button {
++    // A red pill, drawn here: the lock screen's button style ignores colours.
++    // Below the keypad; above the on-screen keyboard in password mode.
++    Rectangle {
 +        id: emergencyButton
-+        visible: root.emergencyAvailable && root.openProgress >= 0.8 && !lockScreenState.isKeyboardMode
++        visible: root.emergencyAvailable && root.openProgress >= 0.8
 +        anchors.horizontalCenter: parent.horizontalCenter
-+        anchors.bottom: parent.bottom
-+        anchors.bottomMargin: Kirigami.Units.gridUnit
-+        flat: true
-+        text: "Emergency call"
-+        font.bold: true
-+        palette.buttonText: "#ff6b6b"
-+        onClicked: emergencyLoader.active = true
++        y: lockScreenState.isKeyboardMode ? Kirigami.Units.gridUnit * 3
++                                          : parent.height - height - Kirigami.Units.gridUnit * 2
++        width: emergencyLabel.implicitWidth + Kirigami.Units.gridUnit * 2.5
++        height: Kirigami.Units.gridUnit * 2.6
++        radius: height / 2
++        color: emergencyTap.pressed ? "#b71c1c" : "#d32f2f"
++
++        Label {
++            id: emergencyLabel
++            anchors.centerIn: parent
++            text: "Emergency call"
++            color: "white"
++            font.bold: true
++            font.pointSize: 12
++        }
++        TapHandler {
++            id: emergencyTap
++            onTapped: emergencyLoader.active = true
++        }
 +    }
 +
 +    Loader {
