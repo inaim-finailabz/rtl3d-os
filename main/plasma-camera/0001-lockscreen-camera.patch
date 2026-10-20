@@ -1,0 +1,188 @@
+diff -urN a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt	2026-10-20 11:33:41
++++ b/CMakeLists.txt	2026-10-20 11:34:13
+@@ -56,7 +56,7 @@
+ 
+ ki18n_install(po)
+ 
+-install(PROGRAMS org.kde.plasma.camera.desktop DESTINATION ${KDE_INSTALL_APPDIR})
++install(PROGRAMS org.kde.plasma.camera.desktop org.rtl3d.lockscreen-camera.desktop DESTINATION ${KDE_INSTALL_APPDIR})
+ install(FILES org.kde.plasma.camera.appdata.xml DESTINATION ${KDE_INSTALL_METAINFODIR})
+ 
+ feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
+diff -urN a/org.kde.plasma.camera.desktop b/org.kde.plasma.camera.desktop
+--- a/org.kde.plasma.camera.desktop	2026-10-20 11:33:41
++++ b/org.kde.plasma.camera.desktop	2026-10-20 11:34:13
+@@ -100,3 +100,4 @@
+ Exec=plasma-camera
+ Categories=Qt;KDE;AudioVideo;
+ X-KDE-FormFactor=desktop;tablet;handset;
++X-KDE-Wayland-Interfaces=kde_lockscreen_overlay_v1
+diff -urN a/org.rtl3d.lockscreen-camera.desktop b/org.rtl3d.lockscreen-camera.desktop
+--- a/org.rtl3d.lockscreen-camera.desktop	1970-01-01 01:00:00
++++ b/org.rtl3d.lockscreen-camera.desktop	2026-10-20 11:34:13
+@@ -0,0 +1,10 @@
++# SPDX-FileCopyrightText: 2026 AI Labz Ltd
++# SPDX-License-Identifier: CC0-1.0
++# RTL@3D: the camera started by the lock screen's camera button.
++[Desktop Entry]
++Type=Application
++Name=Camera
++Icon=camera-photo
++Exec=plasma-camera --lockscreen
++NoDisplay=true
++X-KDE-Wayland-Interfaces=kde_lockscreen_overlay_v1
+diff -urN a/src/CMakeLists.txt b/src/CMakeLists.txt
+--- a/src/CMakeLists.txt	2026-10-20 11:33:41
++++ b/src/CMakeLists.txt	2026-10-20 11:34:13
+@@ -16,7 +16,12 @@
+     resources.qrc
+ )
+ 
+-find_package(Qt6 REQUIRED COMPONENTS Multimedia)
++find_package(Qt6 REQUIRED COMPONENTS Multimedia DBus WaylandClient GuiPrivate)
++if (Qt6_VERSION VERSION_GREATER_EQUAL "6.10.0")
++    find_package(Qt6 REQUIRED COMPONENTS WaylandClientPrivate)
++endif()
++find_package(Wayland REQUIRED COMPONENTS Client)
++find_package(PlasmaWaylandProtocols 1.8 REQUIRED)
+ 
+ add_executable(plasma-camera ${plasma-camera_SRCS})
+ target_compile_options(plasma-camera PUBLIC -fexceptions)
+@@ -32,7 +37,14 @@
+         KF6::I18n
+         KF6::ConfigGui
+         LibExiv2::LibExiv2
++        Qt::DBus
++        Qt::GuiPrivate
++        Qt::WaylandClient
++        Qt::WaylandClientPrivate
++        Wayland::Client
+ )
++qt6_generate_wayland_protocol_client_sources(plasma-camera FILES
++    ${PLASMA_WAYLAND_PROTOCOLS_DIR}/kde-lockscreen-overlay-v1.xml)
+ 
+ find_package(PkgConfig)
+ pkg_check_modules(LIBCAMERA REQUIRED IMPORTED_TARGET libcamera)
+diff -urN a/src/contents/ui/camera/CameraControls.qml b/src/contents/ui/camera/CameraControls.qml
+--- a/src/contents/ui/camera/CameraControls.qml	2026-10-20 11:33:41
++++ b/src/contents/ui/camera/CameraControls.qml	2026-10-20 11:34:13
+@@ -140,6 +140,7 @@
+ 
+                 QQC2.ToolButton {
+                     id: settingsButton
++                    visible: !rtl3dLockscreen
+ 
+                     icon.name: "settings-configure"
+                     icon.color: "white"
+diff -urN a/src/contents/ui/camera/PreviewArea.qml b/src/contents/ui/camera/PreviewArea.qml
+--- a/src/contents/ui/camera/PreviewArea.qml	2026-10-20 11:33:41
++++ b/src/contents/ui/camera/PreviewArea.qml	2026-10-20 11:34:13
+@@ -49,6 +49,13 @@
+     MouseArea {
+         anchors.fill: parent
+         onClicked: {
++            // RTL@3D: above the lock screen no other app may open; show the
++            // photo just taken inside the camera instead.
++            if (rtl3dLockscreen) {
++                if (!showVideoPreview && preview.imageUrl)
++                    applicationWindow().showLockscreenPhoto(preview.imageUrl);
++                return;
++            }
+             if (showVideoPreview)
+                 Qt.openUrlExternally(videoRecorder.actualLocation);
+             else
+diff -urN a/src/contents/ui/main.qml b/src/contents/ui/main.qml
+--- a/src/contents/ui/main.qml	2026-10-20 11:33:41
++++ b/src/contents/ui/main.qml	2026-10-20 11:34:13
+@@ -27,7 +27,30 @@
+     }
+ 
+     function openSettings() {
+-        settingsDialog.open();
++        if (!rtl3dLockscreen)
++            settingsDialog.open();
++    }
++
++    // RTL@3D: lock-screen mode shows only the photo just taken, in here.
++    function showLockscreenPhoto(url) {
++        lockscreenPhoto.source = url;
++        lockscreenPhotoView.visible = true;
++    }
++
++    Rectangle {
++        id: lockscreenPhotoView
++        parent: root.contentItem
++        anchors.fill: parent
++        z: 1000
++        visible: false
++        color: "black"
++        Image {
++            id: lockscreenPhoto
++            anchors.fill: parent
++            fillMode: Image.PreserveAspectFit
++            autoTransform: true
++        }
++        TapHandler { onTapped: lockscreenPhotoView.visible = false }
+     }
+ 
+     PlasmaCamera {
+diff -urN a/src/main.cpp b/src/main.cpp
+--- a/src/main.cpp	2026-10-20 11:33:41
++++ b/src/main.cpp	2026-10-20 11:34:13
+@@ -24,6 +24,55 @@
+ 
+ #include "version.h"
+ 
++// RTL@3D: the lock-screen camera. Started as "plasma-camera --lockscreen" by
++// the lock screen's camera button, it asks KWin to show its window above the
++// lock screen (kde_lockscreen_overlay_v1, as Plasma Dialer does for calls).
++// In that mode it only takes photos and shows the ones taken now: no
++// settings, no gallery, no other app; it quits as soon as the phone unlocks.
++#include <QDBusConnection>
++#include <QDBusReply>
++#include <QDBusInterface>
++#include <QQuickWindow>
++#include <QWaylandClientExtensionTemplate>
++#include <qpa/qplatformnativeinterface.h>
++#include "qwayland-kde-lockscreen-overlay-v1.h"
++
++class AboveLockScreen : public QWaylandClientExtensionTemplate<AboveLockScreen>, public QtWayland::kde_lockscreen_overlay_v1
++{
++public:
++    AboveLockScreen()
++        : QWaylandClientExtensionTemplate<AboveLockScreen>(1)
++    {
++        initialize();
++    }
++};
++
++static bool screenLocked()
++{
++    QDBusInterface saver(u"org.freedesktop.ScreenSaver"_s, u"/ScreenSaver"_s, u"org.freedesktop.ScreenSaver"_s);
++    QDBusReply<bool> reply = saver.call(u"GetActive"_s);
++    return reply.isValid() && reply.value();
++}
++
++// Must run before the window's first frame: KWin only lets a surface above the
++// lock screen if it is allowed while still unmapped.
++static bool allowAboveLockScreen(QWindow *window)
++{
++    static AboveLockScreen overlay;
++    if (!overlay.isInitialized()) {
++        qWarning() << "kde_lockscreen_overlay_v1 not available (is X-KDE-Wayland-Interfaces in the desktop file?)";
++        return false;
++    }
++    auto *native = qGuiApp->platformNativeInterface();
++    auto *surface = static_cast<wl_surface *>(native->nativeResourceForWindow("surface", window));
++    if (!surface) {
++        qWarning() << "no wl_surface for the camera window";
++        return false;
++    }
++    overlay.allow(surface);
++    return true;
++}
++
+ using namespace Qt::Literals::StringLiterals;
+ 
+ constexpr auto URI = "org.kde.plasmacamera";

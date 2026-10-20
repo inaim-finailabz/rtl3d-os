@@ -5,7 +5,7 @@
 maintainer="AI Labz Ltd <hello@finailabz.com>"
 pkgname=plasma-mobile
 pkgver=6.8.0
-pkgrel=101
+pkgrel=102
 pkgdesc="Modules providing phone functionality for Plasma"
 # armhf blocked by qt6-qtdeclarative
 arch="all !armhf"
@@ -82,6 +82,7 @@ _repo_url="https://invent.kde.org/plasma/plasma-mobile.git"
 source="https://download.kde.org/$_rel/plasma/$pkgver/plasma-mobile-$pkgver.tar.xz
 	99-flashlight.rules
 	0001-lockscreen-emergency-call.patch
+	0002-lockscreen-camera.patch
 	"
 
 build() {
@@ -121,4 +122,5 @@ sha512sums="
 ba216fe6ae75a9f211df2c1ae13ba316eaf763d62c4870d8fe5369c2a796661ee10cfd01b84fa1aef484dae54d999fd868c11c6af4883fcd9286c9c6d87c4eae  plasma-mobile-6.8.0.tar.xz
 4badc25cbb7dc84d6af54cff5f3c09dcc37da86b7e930bdcab6d75f8dd90ef0dd9c8a3837ab696b1f4de9cad82d5e64ddd44904640a92e910a8f45524542be95  99-flashlight.rules
 50a923f749e35f75973cdf740fc3c079827d925af8bdb7fd21670ba10466b41415e50de41b3d856fe689f126662c91434c8263461b5dd7b8814216a7f3c51777  0001-lockscreen-emergency-call.patch
+64b318db27da69eac0b67b82a20ce2c7c26f71988fcbdf262a59e4ccfdb75afac4169290b5a032cb79183e3f0e6fe554e5be7dc9f325d2bbb4917430025d4931  0002-lockscreen-camera.patch
 "

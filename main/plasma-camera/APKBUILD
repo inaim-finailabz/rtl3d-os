@@ -1,0 +1,64 @@
+# RTL@3D OS: Alpine's plasma-camera with the lock-screen camera patch
+# (0001: "plasma-camera --lockscreen" shows above the lock screen, photos
+# only). pkgrel 100 sorts above Alpine's build of the same version.
+maintainer="AI Labz Ltd <issam.naim@gmail.com>"
+pkgname=plasma-camera
+pkgver=2.1.1
+pkgrel=100
+pkgdesc="Camera application for Plasma Mobile"
+# armhf blocked by qt6-qtdeclarative
+arch="all !armhf"
+url="https://invent.kde.org/plasma-mobile/plasma-camera"
+license="GPL-3.0-or-later AND BSD-3-Clause"
+depends="
+	gst-plugins-bad
+	gst-plugins-good
+	kirigami
+	kirigami-addons
+	libcamera
+	qt6-qtmultimedia
+	qt6-qtsensors
+	"
+makedepends="
+	extra-cmake-modules
+	kcoreaddons-dev
+	ki18n-dev
+	kirigami-dev
+	libcamera-dev
+	libkexiv2-dev
+	plasma-wayland-protocols
+	qt6-qtbase-dev
+	qt6-qtdeclarative-dev
+	qt6-qtmultimedia-dev
+	qt6-qtsensors-dev
+	qt6-qtsvg-dev
+	qt6-qtwayland-dev
+	wayland-dev
+	samurai
+	"
+checkdepends="appstream"
+subpackages="$pkgname-lang"
+source="https://download.kde.org/stable/plasma-camera/plasma-camera-$pkgver.tar.xz
+	0001-lockscreen-camera.patch
+	"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	ctest --test-dir build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+0a7a6e4bcce5fcb483291e15bca3a4537a4f00a8b7ab4fbd3f38e775ec8757a4b99e4fd4124435e734f865a167a61e836945520005c4058bc41757216e8a325f  plasma-camera-2.1.1.tar.xz
+5ff999652e5c2a4516711a5e97abdd6c29e3ac3a435d0a96b5caab3fe8bfe445d20152e38520b38c3d37d07a38d3c6be0126db71ffc3dffc2b50766ea30a1eb9  0001-lockscreen-camera.patch
+"

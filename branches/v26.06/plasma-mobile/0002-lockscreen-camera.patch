@@ -1,0 +1,36 @@
+diff -urN a/components/shellsettingsplugin/mobileshellsettings.cpp b/components/shellsettingsplugin/mobileshellsettings.cpp
+--- a/components/shellsettingsplugin/mobileshellsettings.cpp	2026-10-20 11:34:37
++++ b/components/shellsettingsplugin/mobileshellsettings.cpp	2026-10-20 11:34:37
+@@ -303,7 +303,7 @@
+ MobileShellSettings::LockscreenButtonAction MobileShellSettings::lockscreenLeftButtonAction() const
+ {
+     auto group = KConfigGroup{m_config, LOCKSCREEN_CONFIG_GROUP};
+-    return (LockscreenButtonAction)group.readEntry("lockscreenLeftButtonAction", (int)LockscreenButtonAction::None);
++    return (LockscreenButtonAction)group.readEntry("lockscreenLeftButtonAction", (int)LockscreenButtonAction::Flashlight);
+ }
+ 
+ void MobileShellSettings::setLockscreenLeftButtonAction(const LockscreenButtonAction action)
+@@ -316,7 +316,7 @@
+ MobileShellSettings::LockscreenButtonAction MobileShellSettings::lockscreenRightButtonAction() const
+ {
+     auto group = KConfigGroup{m_config, LOCKSCREEN_CONFIG_GROUP};
+-    return (LockscreenButtonAction)group.readEntry("lockscreenRightButtonAction", (int)LockscreenButtonAction::None);
++    return (LockscreenButtonAction)group.readEntry("lockscreenRightButtonAction", (int)LockscreenButtonAction::Camera);
+ }
+ 
+ void MobileShellSettings::setLockscreenRightButtonAction(const LockscreenButtonAction action)
+diff -urN a/shell/contents/lockscreen/QuickActionButton.qml b/shell/contents/lockscreen/QuickActionButton.qml
+--- a/shell/contents/lockscreen/QuickActionButton.qml	2026-10-20 11:34:37
++++ b/shell/contents/lockscreen/QuickActionButton.qml	2026-10-20 11:34:37
+@@ -100,8 +100,9 @@
+                 FlashlightUtil.toggleTorch();
+                 return;
+             case ShellSettings.Settings.Camera:
+-                MobileShell.ShellUtil.launchApp("org.kde.plasma.camera");
+-                flickable.goToOpenPosition();
++                // RTL@3D: the camera opens over the lock screen without the
++                // PIN, in its locked mode (photos only, nothing else).
++                MobileShell.ShellUtil.launchApp("org.rtl3d.lockscreen-camera");
+                 return;
+         }
+     }
