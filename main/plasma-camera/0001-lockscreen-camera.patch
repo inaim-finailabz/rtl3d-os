@@ -133,8 +133,8 @@ diff -urN a/src/contents/ui/main.qml b/src/contents/ui/main.qml
      PlasmaCamera {
 diff -urN a/src/main.cpp b/src/main.cpp
 --- a/src/main.cpp	2026-10-20 11:33:41
-+++ b/src/main.cpp	2026-10-20 15:31:13
-@@ -24,6 +24,57 @@
++++ b/src/main.cpp	2026-10-20 15:31:56
+@@ -24,8 +24,59 @@
  
  #include "version.h"
  
@@ -151,8 +151,8 @@ diff -urN a/src/main.cpp b/src/main.cpp
 +#include <qpa/qplatformnativeinterface.h>
 +#include "qwayland-kde-lockscreen-overlay-v1.h"
 +
-+using namespace Qt::Literals::StringLiterals;
-+
+ using namespace Qt::Literals::StringLiterals;
+ 
 +class AboveLockScreen : public QWaylandClientExtensionTemplate<AboveLockScreen>, public QtWayland::kde_lockscreen_overlay_v1
 +{
 +public:
@@ -189,6 +189,44 @@ diff -urN a/src/main.cpp b/src/main.cpp
 +    return true;
 +}
 +
- using namespace Qt::Literals::StringLiterals;
- 
++using namespace Qt::Literals::StringLiterals;
++
  constexpr auto URI = "org.kde.plasmacamera";
+ 
+ 
+@@ -116,6 +167,9 @@
+     qmlRegisterType<PlasmaCameraManager>(URI, 1, 0,
+         "PlasmaCameraManager");
+ 
++    // RTL@3D: lock-screen mode only while the phone is really locked.
++    const bool lockscreen = app.arguments().contains(u"--lockscreen"_s) && screenLocked();
++
+     // load the application from a qml file
+     QQmlApplicationEngine engine;
+ 
+@@ -124,6 +178,25 @@
+ 
+     if (engine.rootObjects().isEmpty()) {
+         return -1;
++    }
++
++    // The QML reads it as applicationWindow().rtl3dLockscreen.
++    engine.rootObjects().at(0)->setProperty("rtl3dLockscreen", lockscreen);
++
++    if (lockscreen) {
++        auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().at(0));
++        if (!window) {
++            return -1;
++        }
++        // Create the surface, allow it, then show it (no frame drawn yet).
++        window->create();
++        if (!allowAboveLockScreen(window)) {
++            return -1;
++        }
++        window->showFullScreen();
++        // Quit as soon as the phone unlocks.
++        QDBusConnection::sessionBus().connect(u"org.freedesktop.ScreenSaver"_s, u"/ScreenSaver"_s, u"org.freedesktop.ScreenSaver"_s,
++                                              u"ActiveChanged"_s, &app, SLOT(quit()));
+     }
+ 
+     return QApplication::exec();
