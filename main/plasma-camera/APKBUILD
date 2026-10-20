@@ -4,7 +4,7 @@
 maintainer="AI Labz Ltd <issam.naim@gmail.com>"
 pkgname=plasma-camera
 pkgver=2.1.1
-pkgrel=101
+pkgrel=102
 pkgdesc="Camera application for Plasma Mobile"
 # armhf blocked by qt6-qtdeclarative
 arch="all !armhf"
@@ -60,5 +60,5 @@ package() {
 
 sha512sums="
 0a7a6e4bcce5fcb483291e15bca3a4537a4f00a8b7ab4fbd3f38e775ec8757a4b99e4fd4124435e734f865a167a61e836945520005c4058bc41757216e8a325f  plasma-camera-2.1.1.tar.xz
-acab92912ba53265db39664f3a9de63724547b6a9cdb20d80475463758a71ac7954a48d9a0fa54fd07bbe2e948c8a6c5c87e9db69fba780df9b76952f00a8545  0001-lockscreen-camera.patch
+12a707de2248dc8b593a5e162f053b0e9f7f76fd3c809e5d7029e2599d86adb29a33e45b3616fcc604a7088967f6eb02697920edf6b8d7f3d3616dd7f4da88dd  0001-lockscreen-camera.patch
 "

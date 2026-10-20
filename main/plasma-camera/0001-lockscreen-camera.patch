@@ -94,8 +94,8 @@ diff -urN a/src/contents/ui/camera/PreviewArea.qml b/src/contents/ui/camera/Prev
              else
 diff -urN a/src/contents/ui/main.qml b/src/contents/ui/main.qml
 --- a/src/contents/ui/main.qml	2026-10-20 11:33:41
-+++ b/src/contents/ui/main.qml	2026-10-20 15:31:13
-@@ -26,8 +26,34 @@
++++ b/src/contents/ui/main.qml	2026-10-20 17:07:23
+@@ -26,8 +26,70 @@
          camera: mainCamera
      }
  
@@ -128,12 +128,48 @@ diff -urN a/src/contents/ui/main.qml b/src/contents/ui/main.qml
 +            autoTransform: true
 +        }
 +        TapHandler { onTapped: lockscreenPhotoView.visible = false }
++    }
++
++    // RTL@3D: above the lock screen Plasma's gestures do not reach the camera,
++    // so it brings its own way back: a Close button, and it closes by itself
++    // after two minutes without a touch.
++    Rectangle {
++        parent: root.contentItem
++        visible: root.rtl3dLockscreen
++        z: 1001
++        anchors.top: parent.top
++        anchors.right: parent.right
++        anchors.margins: Kirigami.Units.gridUnit
++        width: Kirigami.Units.gridUnit * 5.5
++        height: Kirigami.Units.gridUnit * 2.4
++        radius: height / 2
++        color: closeTap.pressed ? Qt.rgba(0, 0, 0, 0.8) : Qt.rgba(0, 0, 0, 0.55)
++        border.color: Qt.rgba(1, 1, 1, 0.5)
++        Controls.Label {
++            anchors.centerIn: parent
++            text: "\u2715  Close"
++            color: "white"
++            font.bold: true
++        }
++        TapHandler { id: closeTap; onTapped: Qt.quit() }
++    }
++    Timer {
++        id: lockscreenIdle
++        running: root.rtl3dLockscreen
++        interval: 120000
++        onTriggered: Qt.quit()
++    }
++    // Any touch anywhere restarts the two minutes (it watches, it never takes the touch).
++    PointHandler {
++        parent: root.contentItem
++        enabled: root.rtl3dLockscreen
++        onActiveChanged: lockscreenIdle.restart()
      }
  
      PlasmaCamera {
 diff -urN a/src/main.cpp b/src/main.cpp
 --- a/src/main.cpp	2026-10-20 11:33:41
-+++ b/src/main.cpp	2026-10-20 15:31:56
++++ b/src/main.cpp	2026-10-20 17:07:23
 @@ -24,8 +24,59 @@
  
  #include "version.h"
@@ -204,7 +240,7 @@ diff -urN a/src/main.cpp b/src/main.cpp
      // load the application from a qml file
      QQmlApplicationEngine engine;
  
-@@ -124,6 +178,25 @@
+@@ -124,6 +178,31 @@
  
      if (engine.rootObjects().isEmpty()) {
          return -1;
@@ -227,6 +263,12 @@ diff -urN a/src/main.cpp b/src/main.cpp
 +        // Quit as soon as the phone unlocks.
 +        QDBusConnection::sessionBus().connect(u"org.freedesktop.ScreenSaver"_s, u"/ScreenSaver"_s, u"org.freedesktop.ScreenSaver"_s,
 +                                              u"ActiveChanged"_s, &app, SLOT(quit()));
++        // And when the screen goes off (power button), so it never waits there.
++        QObject::connect(window, &QWindow::visibilityChanged, &app, [](QWindow::Visibility v) {
++            if (v == QWindow::Hidden || v == QWindow::Minimized) {
++                QCoreApplication::quit();
++            }
++        });
      }
  
      return QApplication::exec();
