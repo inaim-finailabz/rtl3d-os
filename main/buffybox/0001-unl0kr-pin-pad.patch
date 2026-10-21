@@ -1,18 +1,217 @@
+diff --git a/shared/themes.c b/shared/themes.c
+index e48513c..0f89721 100644
+--- a/shared/themes.c
++++ b/shared/themes.c
+@@ -1111,11 +1111,117 @@ static const bbx_theme nord_dark = {
+ };
+ 
+ 
++/* RTL@3D: the look of RTL@3D's lock screen (dark blue, round translucent keys) */
++static const bbx_theme rtl3d = {
++    .name = "rtl3d",
++    .window = {
++        .bg_color = 0x0b1a2b
++    },
++    .header = {
++        .bg_color = 0x0b1a2b,
++        .border_width = 0,
++        .border_color = 0x0b1a2b,
++        .pad = 16,
++        .gap = 10
++    },
++    .keyboard = {
++        .bg_color = 0x0b1a2b,
++        .border_width = 0,
++        .border_color = 0x0b1a2b,
++        .pad = 28,
++        .gap = 22,
++        .keys = {
++            .border_width = 0,
++            .corner_radius = LV_RADIUS_CIRCLE,
++            .key_char = {
++                .normal = { .fg_color = 0xffffff, .bg_color = 0x26384a, .border_color = 0x26384a },
++                .pressed = { .fg_color = 0xffffff, .bg_color = 0x6b7a8a, .border_color = 0x6b7a8a }
++            },
++            .key_non_char = {
++                .normal = { .fg_color = 0xffffff, .bg_color = 0x0b1a2b, .border_color = 0x0b1a2b },
++                .pressed = { .fg_color = 0xffffff, .bg_color = 0x26384a, .border_color = 0x26384a }
++            },
++            .key_mod_act = {
++                .normal = { .fg_color = 0xffffff, .bg_color = 0x3d8bfd, .border_color = 0x3d8bfd },
++                .pressed = { .fg_color = 0xffffff, .bg_color = 0x3d8bfd, .border_color = 0x3d8bfd }
++            },
++            .key_mod_inact = {
++                .normal = { .fg_color = 0xffffff, .bg_color = 0x0b1a2b, .border_color = 0x0b1a2b },
++                .pressed = { .fg_color = 0xffffff, .bg_color = 0x26384a, .border_color = 0x26384a }
++            }
++        }
++    },
++    .button = {
++        .border_width = 0,
++        .corner_radius = LV_RADIUS_CIRCLE,
++        .pad = 10,
++        .normal = { .fg_color = 0xffffff, .bg_color = 0x14263a, .border_color = 0x14263a },
++        .pressed = { .fg_color = 0xffffff, .bg_color = 0x26384a, .border_color = 0x26384a }
++    },
++    .textarea = {
++        .fg_color = 0xffffff,
++        .bg_color = 0x14263a,
++        .border_width = 0,
++        .border_color = 0x14263a,
++        .corner_radius = LV_RADIUS_CIRCLE,
++        .pad = 14,
++        .placeholder_color = 0x8a9bb0,
++        .cursor = {
++            .width = 2,
++            .color = 0xffffff,
++            .period = 700
++        }
++    },
++    .dropdown = {
++        .button = {
++            .border_width = 0,
++            .corner_radius = LV_RADIUS_CIRCLE,
++            .pad = 10,
++            .normal = { .fg_color = 0xffffff, .bg_color = 0x14263a, .border_color = 0x14263a },
++            .pressed = { .fg_color = 0xffffff, .bg_color = 0x26384a, .border_color = 0x26384a }
++        },
++        .list = {
++            .fg_color = 0xffffff,
++            .bg_color = 0x14263a,
++            .selection_fg_color = 0xffffff,
++            .selection_bg_color = 0x3d8bfd,
++            .border_width = 0,
++            .border_color = 0x14263a,
++            .corner_radius = 12,
++            .pad = 0
++        }
++    },
++    .label = {
++        .fg_color = 0xffffff
++    },
++    .msgbox = {
++        .fg_color = 0xffffff,
++        .bg_color = 0x14263a,
++        .border_width = 0,
++        .border_color = 0x14263a,
++        .corner_radius = 18,
++        .pad = 24,
++        .gap = 20,
++        .dimming = {
++            .color = 0x0b1a2b,
++            .opacity = 200
++        }
++    },
++    .bar = {
++        .border_width = 0,
++        .border_color = 0x3d8bfd,
++        .corner_radius = LV_RADIUS_CIRCLE,
++        .indicator = {
++            .bg_color = 0x3d8bfd
++        }
++    }
++};
++
+ /**
+  * Public interface
+  */
+ 
+-const int bbx_themes_num_themes = 7;
++const int bbx_themes_num_themes = 8;
+ const bbx_theme *bbx_themes_themes[] = {
+     &breezy_light,
+     &breezy_dark,
+@@ -1123,7 +1229,8 @@ const bbx_theme *bbx_themes_themes[] = {
+     &pmos_dark,
+     &adwaita_dark,
+     &nord_light,
+-    &nord_dark
++    &nord_dark,
++    &rtl3d
+ };
+ 
+ bbx_themes_theme_id_t bbx_themes_find_theme_with_name(const char *name) {
+diff --git a/shared/themes.h b/shared/themes.h
+index f72f767..539fc1e 100644
+--- a/shared/themes.h
++++ b/shared/themes.h
+@@ -19,6 +19,7 @@ typedef enum {
+     BBX_THEMES_THEME_ADWAITA_DARK = 4,
+     BBX_THEMES_THEME_NORD_LIGHT = 5,
+     BBX_THEMES_THEME_NORD_DARK = 6,
++    BBX_THEMES_THEME_RTL3D = 7, /* RTL@3D */
+ } bbx_themes_theme_id_t;
+ 
+ /* Themes */
 diff --git a/unl0kr/main.c b/unl0kr/main.c
-index 44f2235..3d138c1 100644
+index 44f2235..ef70754 100644
 --- a/unl0kr/main.c
 +++ b/unl0kr/main.c
-@@ -555,7 +555,9 @@ int main(int argc, char *argv[]) {
+@@ -493,6 +493,17 @@ int main(int argc, char *argv[]) {
+     bbx_header_init_config(&header_config);
+     header_config.theme_symbol = UL_SYMBOL_ADJUST;
+     header_config.dropdown_options = sq2lv_layout_short_names;
++    /* RTL@3D: the PIN pad screen shows no tool icons, only the power button,
++       and "RTL@3D" above the PIN field, as RTL@3D's lock screen */
++    const bool rtl3d_pin = conf_opts.keyboard.layout_id == SQ2LV_LAYOUT_PIN;
++    if (rtl3d_pin) {
++        header_config.show_theme_toggle = false;
++        header_config.show_keyboard_toggle = false;
++        header_config.show_layout_dropdown = false;
++        if (!cli_opts.message) {
++            cli_opts.message = "RTL@3D";
++        }
++    }
+ 
+     bbx_header_widgets_t header_widgets;
+     lv_obj_t *header = bbx_header_create(screen, &header_config, &header_widgets);
+@@ -503,9 +514,12 @@ int main(int argc, char *argv[]) {
+     lv_theme_apply(header);
+ 
+     /* Attach callbacks */
+-    lv_obj_add_event_cb(header_widgets.theme_toggle_btn, toggle_theme_btn_clicked_cb, LV_EVENT_CLICKED, NULL);
+-    lv_obj_add_event_cb(header_widgets.keyboard_toggle_btn, toggle_kb_btn_clicked_cb, LV_EVENT_CLICKED, NULL);
+-    lv_obj_add_event_cb(header_widgets.layout_dropdown, layout_dropdown_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
++    if (header_widgets.theme_toggle_btn)
++        lv_obj_add_event_cb(header_widgets.theme_toggle_btn, toggle_theme_btn_clicked_cb, LV_EVENT_CLICKED, NULL);
++    if (header_widgets.keyboard_toggle_btn)
++        lv_obj_add_event_cb(header_widgets.keyboard_toggle_btn, toggle_kb_btn_clicked_cb, LV_EVENT_CLICKED, NULL);
++    if (header_widgets.layout_dropdown)
++        lv_obj_add_event_cb(header_widgets.layout_dropdown, layout_dropdown_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
+     lv_obj_add_event_cb(header_widgets.shutdown_btn, shutdown_btn_clicked_cb, LV_EVENT_CLICKED, NULL);
+ 
+     lv_obj_update_layout(header);
+@@ -542,6 +556,9 @@ int main(int argc, char *argv[]) {
+         message_label = lv_label_create(message_container);
+         lv_obj_set_size(message_label, LV_PCT(100), LV_SIZE_CONTENT);
+         lv_label_set_text(message_label, cli_opts.message);
++        if (rtl3d_pin) {
++            lv_obj_set_style_text_align(message_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
++        }
+     }
+ 
+     /* Textarea flexbox */
+@@ -555,7 +572,9 @@ int main(int argc, char *argv[]) {
      lv_textarea_set_password_mode(textarea, conf_opts.textarea.obscured);
      is_password_obscured = conf_opts.textarea.obscured;
      lv_textarea_set_password_bullet(textarea, conf_opts.textarea.bullet);
 -    lv_textarea_set_placeholder_text(textarea, "Enter password...");
 +    /* RTL@3D: the PIN pad asks for the PIN, the phone's one secret */
 +    lv_textarea_set_placeholder_text(textarea,
-+        conf_opts.keyboard.layout_id == SQ2LV_LAYOUT_PIN ? "Enter your PIN or password" : "Enter password...");
++        conf_opts.keyboard.layout_id == SQ2LV_LAYOUT_PIN ? "Enter PIN" : "Enter password...");
      lv_obj_add_event_cb(textarea, textarea_ready_cb, LV_EVENT_READY, NULL);
      lv_obj_set_flex_grow(textarea, 1);
      lv_obj_add_state(textarea, LV_STATE_FOCUSED);
+@@ -602,7 +621,8 @@ int main(int argc, char *argv[]) {
+ 
+     /* Apply keyboard options */
+     sq2lv_switch_layout(keyboard, conf_opts.keyboard.layout_id);
+-    lv_dropdown_set_selected(header_widgets.layout_dropdown, conf_opts.keyboard.layout_id);
++    if (header_widgets.layout_dropdown)
++        lv_dropdown_set_selected(header_widgets.layout_dropdown, conf_opts.keyboard.layout_id);
+ 
+     /* Periodically run timer / task handler */
+     uint32_t timeout = conf_opts.general.timeout * 1000; /* ms */
 diff --git a/unl0kr/sq2lv_layouts.c b/unl0kr/sq2lv_layouts.c
 index b8a5375..0cac63d 100644
 --- a/unl0kr/sq2lv_layouts.c
