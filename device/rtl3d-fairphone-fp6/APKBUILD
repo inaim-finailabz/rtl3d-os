@@ -3,7 +3,7 @@
 # device-fairphone-fp6, each tested on an FP6+.
 pkgname=rtl3d-fairphone-fp6
 pkgver=0.1
-pkgrel=1
+pkgrel=2
 pkgdesc="RTL@3D OS fixes for the Fairphone (Gen. 6)"
 url="https://github.com/inaim-finailabz/rtl3d-os"
 arch="noarch"
@@ -14,6 +14,7 @@ source="
 	modem-gnss.conf
 	fp6-no-tsched.pa
 	s2idle.conf
+	sensors-after-resume
 	"
 
 package() {
@@ -29,9 +30,14 @@ package() {
 	# 2026-10-20: 3 suspends, 2 resumes, then a dead phone); s2idle does.
 	install -Dm644 "$srcdir"/s2idle.conf \
 		"$pkgdir"/etc/systemd/sleep.conf.d/50-rtl3d-fp6-s2idle.conf
+	# After a wake the sensor service can stop answering, and KWin then
+	# freezes waiting for it: restart it on every resume.
+	install -Dm755 "$srcdir"/sensors-after-resume \
+		"$pkgdir"/usr/lib/systemd/system-sleep/rtl3d-fp6-sensors
 }
 sha512sums="
 3d745d015261eb430ee5a46764834b01a217ddacb74d55c4db52fac1ce61a749b5d6fc20671329953c4fc9f899953c34bbc83cb235ef95622966c541c8be342c  modem-gnss.conf
 b729e9fdf991a7cc7d95b1648bfd2d9d33b4ed79f3f309781fe3454b4668d1666e9606ec2e2ebf41fef6ff07e105855af849b612126329b96b83e1c4ef875280  fp6-no-tsched.pa
 7b77b0d8aff8230c9478af6e1b3864c2ce615cc8f2fadcf5002a099cb6ef5c4312df8b616bea7dbaff8bf980e188f68482f36daa67b509687ec0e8509df52d74  s2idle.conf
+042fc5e3f99a075a637eebfe49918ca800cf0a55bc476933ef36bec4b91eb09e22020383ced3fed8309b9e61048fd30c97b620222e893cdc4fc5019fcba3a748  sensors-after-resume
 "

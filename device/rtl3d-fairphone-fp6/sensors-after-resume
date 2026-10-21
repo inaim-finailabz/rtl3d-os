@@ -1,0 +1,9 @@
+#!/bin/sh
+# RTL@3D: after a wake from sleep, the FP6's sensor service (iio-sensor-proxy,
+# over the sensor DSP) may stop answering; KWin then blocks on its proximity
+# claim and the screen stops responding (seen 2026-10-21). Restart it on
+# every resume, so it always answers.
+case "$1/$2" in
+    post/*) systemctl restart --no-block iio-sensor-proxy.service ;;
+esac
+exit 0
