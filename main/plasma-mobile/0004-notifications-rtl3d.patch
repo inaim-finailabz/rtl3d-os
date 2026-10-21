@@ -1,0 +1,51 @@
+diff -urN a/components/mobileshell/qml/widgets/notifications/NotificationCard.qml b/components/mobileshell/qml/widgets/notifications/NotificationCard.qml
+--- a/components/mobileshell/qml/widgets/notifications/NotificationCard.qml	2026-10-21 19:03:11
++++ b/components/mobileshell/qml/widgets/notifications/NotificationCard.qml	2026-10-21 19:03:11
+@@ -14,6 +14,12 @@
+ Item {
+     id: root
+ 
++    // RTL@3D: notifications in RTL@3D's look, everywhere they show (popups,
++    // the drawer, the lock screen): dark blue frosted glass, white text in
++    // light and dark mode alike, as RTL@3D's lock screen and Settings.
++    Kirigami.Theme.inherit: false
++    Kirigami.Theme.colorSet: Kirigami.Theme.Complementary
++
+     /**
+      * The content that goes inside the notification card
+      */
+@@ -104,12 +110,15 @@
+         }
+     }
+ 
+-    MobileShell.PanelBackground {
++    Rectangle {
+         anchors.fill: mainCard
+-        animate: true
+-        panelType: root.panelType
++        radius: Kirigami.Units.cornerRadius * 3
++        color: Qt.rgba(0.043, 0.102, 0.169, 0.88)     // #0b1a2b, RTL@3D's night blue
++        border.width: 1
++        border.color: Qt.rgba(1, 1, 1, 0.16)
+     }
+ 
++
+     // card
+     Item {
+         id: mainCard
+@@ -156,13 +165,13 @@
+                     height: Math.max(Kirigami.Units.cornerRadius * 2, parent.height)
+                     topLeftRadius: Kirigami.Units.cornerRadius
+                     topRightRadius: Kirigami.Units.cornerRadius
+-                    color: Kirigami.ColorUtils.linearInterpolation(Kirigami.Theme.highlightColor, Kirigami.Theme.backgroundColor, 0.8)
++                    color: "#3d8bfd"
+                 }
+                 Rectangle {
+                     width: Math.min(progress.visualPosition * (parent.width + root.dragOffset), parent.width - Kirigami.Units.cornerRadius)
+                     height: Math.max(Kirigami.Units.cornerRadius * 2, parent.height)
+                     topLeftRadius: Kirigami.Units.cornerRadius
+-                    color: Kirigami.ColorUtils.linearInterpolation (Kirigami.Theme.highlightColor, Kirigami.Theme.backgroundColor, 0.8)
++                    color: "#3d8bfd"
+                 }
+             }
+         }

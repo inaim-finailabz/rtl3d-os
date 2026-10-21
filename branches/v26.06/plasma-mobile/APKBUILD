@@ -3,7 +3,7 @@
 maintainer="AI Labz Ltd <hello@finailabz.com>"
 pkgname=plasma-mobile
 pkgver=6.6.6
-pkgrel=103
+pkgrel=104
 pkgdesc="Modules providing phone functionality for Plasma"
 # armhf blocked by qt6-qtdeclarative
 arch="all !armhf"
@@ -81,6 +81,7 @@ source="https://download.kde.org/$_rel/plasma/$pkgver/plasma-mobile-$pkgver.tar.
 	0001-lockscreen-emergency-call.patch
 	0002-lockscreen-camera.patch
 	0003-keypad-on-press.patch
+	0004-notifications-rtl3d.patch
 	"
 
 build() {
@@ -122,4 +123,5 @@ sha512sums="
 50a923f749e35f75973cdf740fc3c079827d925af8bdb7fd21670ba10466b41415e50de41b3d856fe689f126662c91434c8263461b5dd7b8814216a7f3c51777  0001-lockscreen-emergency-call.patch
 efdc7f6b4a3227d25ec8c3dd07c4f5b70401f84534c13ba8a32fd4b8d6ce3f57f8617e90945ae12cd093e09635161099c0a83aa145d96511433ccaf7321a308b  0002-lockscreen-camera.patch
 bd681d9f86ef47ec15e1c32aa45f471bc828fcb98d04bae808139d6bf3139c826b8ea87247bfaa2dfa767b2e72f2c4a65146c8b8fc61d40b463407f29575f3b6  0003-keypad-on-press.patch
+296d2fa41a4358a18af2ca8db950a9f976874836c1e4515196b9634603d55cc66af53089e5a7f59efded0c3ef70aba9a16da095b59a7cbbdec6850e3d25bb442  0004-notifications-rtl3d.patch
 "
