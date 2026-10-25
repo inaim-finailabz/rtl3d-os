@@ -2,12 +2,13 @@
 # RTL@3D OS: our package repository and key, on top of Nura's.
 pkgname=rtl3d-os-base
 pkgver=0.1
-pkgrel=0
+pkgrel=1
 pkgdesc="RTL@3D OS, based on Nura: its package repository and signing key"
 url="https://github.com/inaim-finailabz/rtl3d-os"
 arch="noarch"
 license="GPL-3.0-or-later"
 options="!check"
+depends="rtl3d-linux-support>=0.1.0-r1"
 source="
 	rtl3d-os.list
 	rtl3d-os.rsa.pub
